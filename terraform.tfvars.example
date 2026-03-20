@@ -1,0 +1,45 @@
+# Example terraform.tfvars - Copy and customize this file with your values
+# This file shows how to override default variable values
+
+# Required: Update with your actual GCP project ID
+project_id = "your-gcp-project-id"
+
+# Optional: Override region if not using us-central1
+# region = "us-west1"
+
+# Optional: Custom VPC and subnet names
+# vpc_name   = "my-gke-vpc"
+# subnet_name = "my-gke-subnet"
+
+# Optional: Custom CIDR ranges (defaults are good for most use cases)
+# vpc_cidr                 = "10.0.0.0/16"
+# subnet_cidr              = "10.0.1.0/24"
+# pods_secondary_cidr      = "10.1.0.0/16"
+# services_secondary_cidr  = "10.2.0.0/16"
+
+# IMPORTANT: Set to your IP address or CIDR block for SSH access
+# Example: "203.0.113.42/32" for a single IP
+# allowed_ssh_cidr = "0.0.0.0/0"  # Change this to your IP!
+
+# Optional: Custom cluster name
+# cluster_name = "my-production-cluster"
+
+# Optional: Node pool sizing
+# initial_node_count = 3
+# min_node_count     = 3
+# max_node_count     = 10
+
+# Optional: Machine type and disk size
+# machine_type = "n1-standard-4"
+# disk_size_gb = 100
+
+# Optional: Enable preemptible nodes to save costs
+# enable_preemptible_nodes = true
+
+# Optional: Custom labels
+# labels = {
+#   environment = "production"
+#   managed_by  = "terraform"
+#   project     = "my-project"
+#   team        = "platform"
+# }
