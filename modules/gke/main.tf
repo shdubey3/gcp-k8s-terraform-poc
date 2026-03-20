@@ -31,14 +31,14 @@ resource "google_container_cluster" "primary" {
 
     resource_limits {
       resource_type = "cpu"
-      minimum_node_count = var.min_node_count * 2  # Approximate based on machine type
-      maximum_node_count = var.max_node_count * 4
+      minimum = var.min_node_count * 2  # Approximate based on machine type
+      maximum = var.max_node_count * 4
     }
 
     resource_limits {
       resource_type = "memory"
-      minimum_node_count = var.min_node_count * 8  # Approximate based on machine type
-      maximum_node_count = var.max_node_count * 16
+      minimum = var.min_node_count * 8  # Approximate based on machine type
+      maximum = var.max_node_count * 16
     }
   }
 
