@@ -1,45 +1,62 @@
-# Example terraform.tfvars - Copy and customize this file with your values
-# This file shows how to override default variable values
+# terraform.tfvars.example
+# ──────────────────────────────────────────────────────────────────────────────
+# Copy this to terraform.tfvars and uncomment/adjust what you need.
+#
+# REQUIRED – set via shell environment (never commit real values):
+#
+#   export MY_PROJECT="your-gcp-project-id"
+#   export MY_CIDR="$(curl -s ifconfig.me)/32"   # auto-detected if unset
+#   source setenv.sh
+#
+# Then run: terraform plan / terraform apply
+# ──────────────────────────────────────────────────────────────────────────────
 
-# Required: Update with your actual GCP project ID
-project_id = "your-gcp-project-id"
+# ── Cluster ───────────────────────────────────────────────────────────────────
+cluster = {
+  name              = "andromeda"
+  region            = "us-west1"
+  gke_version       = "1.34.4-gke.1130000"
+  release_channel   = "STABLE"       # RAPID | REGULAR | STABLE
+  node_locations    = ["us-west1-a"]
+  max_pods_per_node = 110
+}
 
-# Optional: Override region if not using us-central1
-# region = "us-west1"
+# ── Networking ────────────────────────────────────────────────────────────────
+network = {
+  vpc_name            = "main-network"
+  subnet_name         = "main-subnet"
+  vpc_cidr            = "10.0.0.0/16"
+  subnet_cidr         = "10.0.1.0/24"
+  pods_range_name     = "main-pods"
+  pods_cidr           = "10.1.0.0/16"
+  services_range_name = "main-services"
+  services_cidr       = "10.2.0.0/16"
+  allowed_ssh_cidr    = "0.0.0.0/0"  # tighten to your IP in production
+}
 
-# Optional: Custom VPC and subnet names
-# vpc_name   = "my-gke-vpc"
-# subnet_name = "my-gke-subnet"
+# ── Node Pool ─────────────────────────────────────────────────────────────────
+node_pool = {
+  name          = "default-pool"
+  machine_type  = "e2-medium"
+  disk_size_gb  = 100
+  disk_type     = "pd-balanced"    # pd-standard | pd-ssd | pd-balanced
+  image_type    = "COS_CONTAINERD"
+  initial_count = 3
+  min_count     = 3
+  max_count     = 10
+}
 
-# Optional: Custom CIDR ranges (defaults are good for most use cases)
-# vpc_cidr                 = "10.0.0.0/16"
-# subnet_cidr              = "10.0.1.0/24"
-# pods_secondary_cidr      = "10.1.0.0/16"
-# services_secondary_cidr  = "10.2.0.0/16"
+# ── Node Auto-Provisioning ────────────────────────────────────────────────────
+autoprovisioning = {
+  min_cpu    = 1
+  max_cpu    = 10
+  min_memory = 1
+  max_memory = 64
+  locations  = ["us-west1-a"]
+}
 
-# IMPORTANT: Set to your IP address or CIDR block for SSH access
-# Example: "203.0.113.42/32" for a single IP
-# allowed_ssh_cidr = "0.0.0.0/0"  # Change this to your IP!
-
-# Optional: Custom cluster name
-# cluster_name = "my-production-cluster"
-
-# Optional: Node pool sizing
-# initial_node_count = 3
-# min_node_count     = 3
-# max_node_count     = 10
-
-# Optional: Machine type and disk size
-# machine_type = "n1-standard-4"
-# disk_size_gb = 100
-
-# Optional: Enable preemptible nodes to save costs
-# enable_preemptible_nodes = true
-
-# Optional: Custom labels
-# labels = {
-#   environment = "production"
-#   managed_by  = "terraform"
-#   project     = "my-project"
-#   team        = "platform"
-# }
+# ── Labels ────────────────────────────────────────────────────────────────────
+labels = {
+  environment = "poc"
+  managed_by  = "terraform"
+}
