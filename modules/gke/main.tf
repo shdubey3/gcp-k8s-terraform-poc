@@ -70,6 +70,11 @@ resource "google_container_cluster" "primary" {
     services_secondary_range_name = var.services_secondary_range_name
   }
 
+  # Explicitly use VPC-native networking (alias IPs) instead of routes-based.
+  # Without this, GKE defaults to Kubenet (routes-based), which causes
+  # "Kubenet does not have netConfig / lack of PodCIDR" errors on node startup.
+  networking_mode = "VPC_NATIVE"
+
   # Default max pods per node (--default-max-pods-per-node "110")
   default_max_pods_per_node = var.max_pods_per_node
 
