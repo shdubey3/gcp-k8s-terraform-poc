@@ -197,6 +197,11 @@ resource "google_container_cluster" "primary" {
     }
   }
 
+  # Workload Identity (required for GKE_METADATA mode on node pools)
+  workload_identity_config {
+    workload_pool = "${var.project_id}.svc.id.goog"
+  }
+
   resource_labels = var.labels
   description     = "Regional GKE cluster - reference configuration"
 }
