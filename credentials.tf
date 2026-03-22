@@ -1,2 +1,7 @@
-# Use ADC if available, otherwise look for service account key
-# Add service-account-key.json file in this directory if needed
+# Authentication uses Application Default Credentials (ADC).
+# Run: gcloud auth application-default login
+#
+# If you need to use a service account key instead, place it at:
+#   ~/.gcp/keys/service-account-key.json
+# and set: export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.gcp/keys/service-account-key.json"
+# (Never place key files inside the project directory)

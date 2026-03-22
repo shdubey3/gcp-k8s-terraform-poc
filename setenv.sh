@@ -32,8 +32,17 @@ export TF_VAR_master_authorized_cidr="${MY_CIDR}"
 # export TF_VAR_node_pool='{"machine_type":"e2-standard-4","min_count":3,"max_count":10}'
 # export TF_VAR_network='{"vpc_cidr":"10.10.0.0/16","subnet_cidr":"10.10.1.0/24"}'
 
+# ── Optional: service account key (falls back to ADC if not present) ─────────
+SA_KEY="${HOME}/.gcp/keys/service-account-key.json"
+if [[ -f "${SA_KEY}" ]]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="${SA_KEY}"
+fi
+
 echo "──────────────────────────────────────────"
 echo " TF_VAR_project_id              = ${TF_VAR_project_id}"
 echo " TF_VAR_master_authorized_cidr  = ${TF_VAR_master_authorized_cidr}"
+if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+  echo " GOOGLE_APPLICATION_CREDENTIALS = ${GOOGLE_APPLICATION_CREDENTIALS}"
+fi
 echo "──────────────────────────────────────────"
 echo "Ready. Run: terraform plan"
