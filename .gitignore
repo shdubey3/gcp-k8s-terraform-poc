@@ -46,3 +46,19 @@ terraform.rc
 *.swo
 *~
 .vscode/
+
+# Credentials & secrets – never commit these
+service-account-key.json
+*.json.key
+.access_token
+*.pem
+*.p12
+
+# Terraform plan output files
+gcp_k8s_plan
+gcp_k8s_tf_plan
+plan-graph-*.png
+
+# setenv should be sourced but its contents (with real values) stay local
+# Commit setenv.sh (it has no secrets), but never setenv.local.sh
+setenv.local.sh
