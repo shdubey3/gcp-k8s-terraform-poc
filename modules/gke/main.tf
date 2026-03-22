@@ -38,6 +38,9 @@ resource "google_container_cluster" "primary" {
   location = var.region
   project  = var.project_id
 
+  # Allow Terraform to destroy and recreate the cluster (required for region/zone changes)
+  deletion_protection = false
+
   # Remove default node pool immediately; manage node pools separately
   remove_default_node_pool = true
   initial_node_count       = 1
@@ -127,7 +130,7 @@ resource "google_container_cluster" "primary" {
       maximum       = var.autoprovisioning_max_memory
     }
 
-    autoprovisioning_locations = var.autoprovisioning_locations
+    auto_provisioning_locations = var.autoprovisioning_locations
 
     auto_provisioning_defaults {
       service_account = google_service_account.node_pool_sa.email
