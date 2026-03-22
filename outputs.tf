@@ -45,7 +45,7 @@ output "kubernetes_cluster_host" {
 
 output "region" {
   description = "The GCP region where resources are deployed"
-  value       = var.region
+  value       = var.cluster.region
 }
 
 output "kubernetes_version" {
@@ -61,7 +61,7 @@ output "node_pool_name" {
 # Connection information
 output "configure_kubectl" {
   description = "Command to configure kubectl to connect to the GKE cluster"
-  value       = "gcloud container clusters get-credentials ${module.gke.cluster_name} --region ${var.region} --project ${var.project_id}"
+  value       = "gcloud container clusters get-credentials ${module.gke.cluster_name} --region ${var.cluster.region} --project ${var.project_id}"
 }
 
 output "cluster_ca_certificate" {
