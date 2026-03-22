@@ -32,10 +32,22 @@ export TF_VAR_master_authorized_cidr="${MY_CIDR}"
 # export TF_VAR_node_pool='{"machine_type":"e2-standard-4","min_count":3,"max_count":10}'
 # export TF_VAR_network='{"vpc_cidr":"10.10.0.0/16","subnet_cidr":"10.10.1.0/24"}'
 
-# ── Optional: service account key (falls back to ADC if not present) ─────────
+# ── Credentials: explicit ADC path wins; SA key is opt-in only ───────────────
+# If GOOGLE_APPLICATION_CREDENTIALS is already set in the environment, honour it.
+# Otherwise, prefer the ADC file created by `gcloud auth application-default login`
+# (includes full project IAM write scope needed for setIamPolicy).
+# To use a service account key instead, set USE_SA_KEY=1 before sourcing this file.
+ADC_FILE="${HOME}/.config/gcloud/application_default_credentials.json"
 SA_KEY="${HOME}/.gcp/keys/service-account-key.json"
-if [[ -f "${SA_KEY}" ]]; then
-  export GOOGLE_APPLICATION_CREDENTIALS="${SA_KEY}"
+
+if [[ -z "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
+  if [[ "${USE_SA_KEY:-0}" == "1" && -f "${SA_KEY}" ]]; then
+    export GOOGLE_APPLICATION_CREDENTIALS="${SA_KEY}"
+  elif [[ -f "${ADC_FILE}" ]]; then
+    export GOOGLE_APPLICATION_CREDENTIALS="${ADC_FILE}"
+  else
+    echo "WARNING: No credentials found. Run: gcloud auth application-default login" >&2
+  fi
 fi
 
 echo "──────────────────────────────────────────"
@@ -45,4 +57,4 @@ if [[ -n "${GOOGLE_APPLICATION_CREDENTIALS:-}" ]]; then
   echo " GOOGLE_APPLICATION_CREDENTIALS = ${GOOGLE_APPLICATION_CREDENTIALS}"
 fi
 echo "──────────────────────────────────────────"
-echo "Ready. Run: terraform plan"
+echo "Ready. Run: tofu plan"

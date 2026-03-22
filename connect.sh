@@ -20,11 +20,12 @@ fi
 
 # ── Read cluster name and region from Terraform state ────────────────────────
 echo "Reading cluster info from Terraform state..."
-CLUSTER_NAME=$(tofu output -raw kubernetes_cluster_name 2>/dev/null || terraform output -raw kubernetes_cluster_name)
-REGION=$(tofu output -raw region 2>/dev/null || terraform output -raw region)
+CLUSTER_NAME=$(tofu output -raw kubernetes_cluster_name 2>/dev/null || terraform output -raw kubernetes_cluster_name 2>/dev/null || echo "")
+REGION=$(tofu output -raw region 2>/dev/null || terraform output -raw region 2>/dev/null || echo "")
 
 if [[ -z "${CLUSTER_NAME}" || -z "${REGION}" ]]; then
   echo "ERROR: Could not read Terraform outputs. Has 'tofu apply' been run?" >&2
+  echo "       Run: tofu apply" >&2
   exit 1
 fi
 
