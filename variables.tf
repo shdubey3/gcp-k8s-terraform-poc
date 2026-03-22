@@ -1,6 +1,9 @@
-# Main project and region variables
+# ── Required (no default) ─────────────────────────────────────────────────────
+# Set via environment variables before running terraform:
+#   source setenv.sh
+
 variable "project_id" {
-  description = "GCP Project ID"
+  description = "GCP project ID. Set via: export MY_PROJECT=your-project-id && source setenv.sh"
   type        = string
   validation {
     condition     = length(var.project_id) > 0
@@ -8,186 +11,82 @@ variable "project_id" {
   }
 }
 
-variable "region" {
-  description = "GCP region for resources"
+variable "master_authorized_cidr" {
+  description = "CIDR allowed to reach the Kubernetes API server. Set via: export MY_CIDR=$(curl -s ifconfig.me)/32 && source setenv.sh"
   type        = string
-  default     = "us-central1"
 }
 
-# Networking variables
-variable "vpc_name" {
-  description = "Name of the VPC network"
-  type        = string
-  default     = "gke-vpc"
+# ── Cluster ────────────────────────────────────────────────────────────────────
+
+variable "cluster" {
+  description = "GKE cluster settings"
+  type = object({
+    name              = optional(string, "andromeda")
+    region            = optional(string, "us-west1")
+    gke_version       = optional(string, "1.34.4-gke.1130000")
+    release_channel   = optional(string, "STABLE")
+    node_locations    = optional(list(string), ["us-west1-a"])
+    max_pods_per_node = optional(number, 110)
+  })
+  default = {}
 }
 
-variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-  validation {
-    condition     = can(cidrhost(var.vpc_cidr, 0))
-    error_message = "vpc_cidr must be a valid CIDR block."
-  }
+# ── Networking ────────────────────────────────────────────────────────────────
+
+variable "network" {
+  description = "VPC and subnet settings. CIDRs can be overridden via TF_VAR_network (JSON) if needed."
+  type = object({
+    vpc_name            = optional(string, "main-network")
+    subnet_name         = optional(string, "main-subnet")
+    vpc_cidr            = optional(string, "10.0.0.0/16")
+    subnet_cidr         = optional(string, "10.0.1.0/24")
+    pods_range_name     = optional(string, "main-pods")
+    pods_cidr           = optional(string, "10.1.0.0/16")
+    services_range_name = optional(string, "main-services")
+    services_cidr       = optional(string, "10.2.0.0/16")
+    allowed_ssh_cidr    = optional(string, "0.0.0.0/0")
+  })
+  default = {}
 }
 
-variable "subnet_name" {
-  description = "Name of the subnet"
-  type        = string
-  default     = "gke-subnet"
+# ── Node Pool ─────────────────────────────────────────────────────────────────
+
+variable "node_pool" {
+  description = "Default node pool settings"
+  type = object({
+    name          = optional(string, "default-pool")
+    machine_type  = optional(string, "e2-medium")
+    disk_size_gb  = optional(number, 100)
+    disk_type     = optional(string, "pd-balanced")
+    image_type    = optional(string, "COS_CONTAINERD")
+    initial_count = optional(number, 3)
+    min_count     = optional(number, 3)
+    max_count     = optional(number, 10)
+  })
+  default = {}
 }
 
-variable "subnet_cidr" {
-  description = "CIDR block for the subnet"
-  type        = string
-  default     = "10.0.1.0/24"
-  validation {
-    condition     = can(cidrhost(var.subnet_cidr, 0))
-    error_message = "subnet_cidr must be a valid CIDR block."
-  }
+# ── Node Auto-Provisioning ────────────────────────────────────────────────────
+
+variable "autoprovisioning" {
+  description = "Node Auto-Provisioning (cluster autoscaler) resource limits"
+  type = object({
+    min_cpu    = optional(number, 1)
+    max_cpu    = optional(number, 10)
+    min_memory = optional(number, 1)
+    max_memory = optional(number, 64)
+    locations  = optional(list(string), ["us-west1-a"])
+  })
+  default = {}
 }
 
-variable "pods_secondary_range_name" {
-  description = "Name of the secondary IP range for pods"
-  type        = string
-  default     = "pods"
-}
-
-variable "pods_secondary_cidr" {
-  description = "CIDR block for pods secondary range"
-  type        = string
-  default     = "10.1.0.0/16"
-  validation {
-    condition     = can(cidrhost(var.pods_secondary_cidr, 0))
-    error_message = "pods_secondary_cidr must be a valid CIDR block."
-  }
-}
-
-variable "services_secondary_range_name" {
-  description = "Name of the secondary IP range for services"
-  type        = string
-  default     = "services"
-}
-
-variable "services_secondary_cidr" {
-  description = "CIDR block for services secondary range"
-  type        = string
-  default     = "10.2.0.0/16"
-  validation {
-    condition     = can(cidrhost(var.services_secondary_cidr, 0))
-    error_message = "services_secondary_cidr must be a valid CIDR block."
-  }
-}
-
-variable "allowed_ssh_cidr" {
-  description = "CIDR block allowed to SSH to nodes"
-  type        = string
-  default     = "0.0.0.0/0" # Change to your IP (e.g., "203.0.113.0/32")
-}
-
-# GKE Cluster variables
-variable "cluster_name" {
-  description = "Name of the GKE cluster"
-  type        = string
-  default     = "gke-poc-cluster"
-}
-
-variable "gke_version" {
-  description = "Kubernetes version for the GKE cluster (uses latest if not specified)"
-  type        = string
-  default     = null # null means latest version
-}
-
-variable "enable_network_policy" {
-  description = "Enable GKE Network Policy"
-  type        = bool
-  default     = true
-}
-
-variable "enable_logging" {
-  description = "Enable GKE cluster logging"
-  type        = bool
-  default     = true
-}
-
-variable "enable_monitoring" {
-  description = "Enable GKE cluster monitoring"
-  type        = bool
-  default     = true
-}
-
-# Node pool variables
-variable "node_pool_name" {
-  description = "Name of the default node pool"
-  type        = string
-  default     = "default-pool"
-}
-
-variable "initial_node_count" {
-  description = "Initial number of nodes in the node pool"
-  type        = number
-  default     = 3
-  validation {
-    condition     = var.initial_node_count >= 1
-    error_message = "initial_node_count must be at least 1."
-  }
-}
-
-variable "min_node_count" {
-  description = "Minimum number of nodes for autoscaling"
-  type        = number
-  default     = 3
-  validation {
-    condition     = var.min_node_count >= 1
-    error_message = "min_node_count must be at least 1."
-  }
-}
-
-variable "max_node_count" {
-  description = "Maximum number of nodes for autoscaling"
-  type        = number
-  default     = 10
-  validation {
-    condition     = var.max_node_count >= var.min_node_count
-    error_message = "max_node_count must be greater than or equal to min_node_count."
-  }
-}
-
-variable "machine_type" {
-  description = "Machine type for nodes"
-  type        = string
-  default     = "e2-standard-4"
-}
-
-variable "disk_size_gb" {
-  description = "Disk size in GB for nodes"
-  type        = number
-  default     = 100
-  validation {
-    condition     = var.disk_size_gb >= 10
-    error_message = "disk_size_gb must be at least 10."
-  }
-}
-
-variable "enable_preemptible_nodes" {
-  description = "Use preemptible nodes to reduce costs"
-  type        = bool
-  default     = false
-}
-
-# Labels and tags
-variable "environment" {
-  description = "Environment identifier"
-  type        = string
-  default     = "poc"
-}
+# ── Labels ────────────────────────────────────────────────────────────────────
 
 variable "labels" {
-  description = "Common labels to apply to all resources"
+  description = "Common labels applied to all resources"
   type        = map(string)
   default = {
     environment = "poc"
     managed_by  = "terraform"
-    project     = "gke-poc"
   }
 }
